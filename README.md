@@ -27,7 +27,7 @@ To utilize SQL scripts for analyzing sales, customer, and product data from the 
 ## SQL SCRIPT TO SOLVE BUSINESS QUESTION
 
 1. List Products by Category Name.
-   ``` sql
+``` sql
 SELECT c.CategoryName, p.ProductName
 FROM product_lookup p
 JOIN product_subcategories_lookup s ON p.ProductSubcategoryKey = s.ProductSubcategoryKey
