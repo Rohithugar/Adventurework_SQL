@@ -34,3 +34,14 @@ JOIN product_subcategories_lookup s ON p.ProductSubcategoryKey = s.ProductSubcat
 JOIN product_categories_lookup c ON s.ProductCategoryKey = c.ProductCategoryKey
 ORDER BY c.CategoryName;
 ```
+2. Total sales in 2020, 2021, 2022.
+``` sql
+SELECT SUM(OrderQuantity) AS TotalSales2020
+FROM sales_data_2020;
+
+SELECT SUM(OrderQuantity) AS TotalSales2021
+FROM sales_data_2021;
+
+SELECT SUM(OrderQuantity) AS TotalSales2022
+FROM sales_data_2022;
+```
