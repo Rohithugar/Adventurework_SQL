@@ -173,12 +173,151 @@ LIMIT 3;
 ``` 
 11. Total Revenue.
 ``` sql
-
+SELECT 
+    ROUND(SUM(s.OrderQuantity * p.ProductPrice),2) AS TotalRevenue
+FROM 
+    (
+        SELECT OrderQuantity, ProductKey FROM sales_data_2020
+        UNION ALL
+        SELECT OrderQuantity, ProductKey FROM sales_data_2021
+        UNION ALL
+        SELECT OrderQuantity, ProductKey FROM sales_data_2022
+    ) s
+JOIN 
+    product_lookup p ON s.ProductKey = p.ProductKey;
 ``` 
 12. Total Profit.
+``` sql
+SELECT 
+   ROUND(SUM(s.OrderQuantity * (p.ProductPrice - p.ProductCost)),2) AS TotalProfit
+FROM 
+    (
+        SELECT OrderQuantity, ProductKey FROM sales_data_2020
+        UNION ALL
+        SELECT OrderQuantity, ProductKey FROM sales_data_2021
+        UNION ALL
+        SELECT OrderQuantity, ProductKey FROM sales_data_2022
+    ) s
+JOIN 
+    product_lookup p ON s.ProductKey = p.ProductKey;
+``` 
 13. Monthly Revenue.
+``` sql
+SELECT 
+    YEAR(s.OrderDate) AS Year,
+    MONTH(s.OrderDate) AS Month,
+    ROUND(SUM(s.OrderQuantity * p.ProductPrice),2) AS MonthlyRevenue
+FROM 
+    (
+        SELECT OrderDate, OrderQuantity, ProductKey FROM sales_data_2020
+        UNION ALL
+        SELECT OrderDate, OrderQuantity, ProductKey FROM sales_data_2021
+        UNION ALL
+        SELECT OrderDate, OrderQuantity, ProductKey FROM sales_data_2022
+    ) s
+JOIN 
+    product_lookup p ON s.ProductKey = p.ProductKey
+GROUP BY 
+    Year, Month
+ORDER BY 
+    Year, Month;
+``` 
 14. Monthly Orders.
+``` sql
+SELECT 
+    YEAR(s.OrderDate) AS Year,
+    MONTH(s.OrderDate) AS Month,
+    SUM(s.OrderQuantity) AS MonthlyOrders
+FROM 
+    (
+        SELECT OrderDate, OrderQuantity FROM sales_data_2020
+        UNION ALL
+        SELECT OrderDate, OrderQuantity FROM sales_data_2021
+        UNION ALL
+        SELECT OrderDate, OrderQuantity FROM sales_data_2022
+    ) s
+GROUP BY 
+    Year, Month
+ORDER BY 
+    Year, Month;
+```
 15. Find the total revenue generated per year.
+``` sql
+SELECT '2020' AS Year, ROUND(SUM(p.ProductPrice * s.OrderQuantity),2) AS TotalRevenue 
+FROM sales_data_2020 s 
+JOIN product_lookup p ON s.ProductKey = p.ProductKey
+UNION
+SELECT '2021', ROUND(SUM(p.ProductPrice * s.OrderQuantity),2)
+FROM sales_data_2021 s 
+JOIN product_lookup p ON s.ProductKey = p.ProductKey
+UNION
+SELECT '2022', ROUND(SUM(p.ProductPrice * s.OrderQuantity),2)
+FROM sales_data_2022 s 
+JOIN product_lookup p ON s.ProductKey = p.ProductKey;
+``` 
 16. Count the total number of orders returned per territory.
+``` sql
+SELECT t.Region, COUNT(r.ReturnDate) AS TotalReturns 
+FROM returns_data r 
+JOIN territory_lookup t ON r.TerritoryKey = t.SalesTerritoryKey 
+GROUP BY t.Region;
+```
 17. Average Profit by categories.
-18. The total returned items by each category and country
+``` sql
+SELECT
+    pc.CategoryName,
+    ROUND(AVG((pl.ProductPrice - pl.ProductCost) / pl.ProductPrice * 100),2) AS AvgProfitMargin
+FROM
+    product_categories_lookup pc
+JOIN
+    product_subcategories_lookup ps ON pc.ProductCategoryKey = ps.ProductCategoryKey
+JOIN
+    product_lookup pl ON ps.ProductSubcategoryKey = pl.ProductSubcategoryKey
+GROUP BY
+    pc.CategoryName
+LIMIT 0, 2000;
+``` 
+18. The total returned items by each category and country.
+``` sql
+SELECT
+    pc.CategoryName,
+    tl.Country,  -- Adjust this to the actual column name for country
+    SUM(rd.ReturnQuantity) AS TotalReturned
+FROM
+    product_categories_lookup pc
+JOIN
+    product_subcategories_lookup ps ON pc.ProductCategoryKey = ps.ProductCategoryKey
+JOIN
+    product_lookup pl ON ps.ProductSubcategoryKey = pl.ProductSubcategoryKey
+JOIN
+    returns_data rd ON pl.ProductKey = rd.ProductKey
+JOIN
+    territory_lookup tl ON rd.TerritoryKey = tl.SalesTerritoryKey  -- Ensure correct table name and column
+GROUP BY
+    pc.CategoryName,
+    tl.Country
+ORDER BY
+    pc.CategoryName,
+    tl.Country
+LIMIT 0, 2000;
+``` 
+# Conclusion
+After analyzing the AdventureWorks data, we observed the following key insights:
+
+## Sales Growth and Return Rate:
+
+Sales have increased over the past three years, indicating a positive trend in overall revenue. However, the return rate has also risen. To address this, it is crucial to investigate customer feedback to understand the reasons behind the returns. By addressing these issues, we can work on reducing the return rate and improving customer satisfaction.
+
+## Regional Performance:
+
+Sales in the Southeast and Central regions are below expectations. To boost performance in these areas, we recommend increasing marketing campaigns, enhancing advertisements, and improving customer engagement strategies.
+
+## Profitability by Category:
+
+The average profit margin by product category is strong, reflecting effective product pricing and cost management across categories.
+
+## Return Rates by Category:
+
+The Accessories category has the highest return rate. This suggests a need for a deeper analysis of product quality, customer expectations, and possible issues with the Accessories range.
+
+By focusing on customer feedback to reduce returns, strengthening marketing efforts in underperforming regions, and addressing the high return rates in specific product categories, we can enhance overall business performance and customer satisfaction.
